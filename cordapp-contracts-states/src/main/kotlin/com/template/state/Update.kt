@@ -10,18 +10,20 @@ import net.corda.core.schemas.PersistentState
 import net.corda.core.schemas.QueryableState
 
 
-data class Admission(val hospital: Party,
+data class Update(val hospital: Party,
                      val municipality: Party,
                      val ehr: Int,
-                     val status: String,
+                     val eventType: String,
+                     val eventDescription: String,
                      override val linearId: UniqueIdentifier,
                      override val participants: List<AbstractParty>) : LinearState, QueryableState {
 
     override fun generateMappedObject(schema: MappedSchema): PersistentState {
         return when (schema) {
-            is MedicalSchemaV1 -> MedicalSchemaV1.PersistentMedicalState(
+            is MedicalSchemaV1 -> MedicalSchemaV1.PersistentEventState(
                     ehr = this.ehr,
-                    admitStatus =  this.status
+                    eventType =  this.eventType,
+                    eventDescription = this.eventDescription
             )
             else -> throw IllegalArgumentException("Unrecognised schema $schema")
         }
