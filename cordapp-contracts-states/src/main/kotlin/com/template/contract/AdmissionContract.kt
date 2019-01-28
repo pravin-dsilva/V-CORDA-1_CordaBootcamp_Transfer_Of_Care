@@ -27,7 +27,7 @@ class AdmissionContract: Contract {
             "Transaction should have one output" using (tx.outputs.size == 1)
            val outputState = tx.outputStates.get(0) as Admission
             //val outputState2 = tx.outputsOfType<InvoiceState>().get(0)
-            "Admission should be signed by hospital" using (command.signers.contains(outputState.hospital.owningKey))
+            "Admission should be signed by hospital and municipality" using (command.signers.containsAll(listOf(outputState.hospital.owningKey, outputState.municipality.owningKey)))
             "The ehr value should be positive" using (outputState.ehr > 0)
         }
 
