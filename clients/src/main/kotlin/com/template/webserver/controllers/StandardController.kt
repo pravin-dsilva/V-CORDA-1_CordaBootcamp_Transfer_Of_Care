@@ -1,10 +1,14 @@
 package com.template.webserver.controllers
 
 import com.template.AdmissionFlow
+import com.template.TransferApprovalFlow
+import com.template.TransferRequestFlow
+import com.template.UpdateFlow
 import com.template.state.Admission
 import net.corda.core.contracts.ContractState
 import net.corda.core.messaging.vaultQueryBy
 import com.template.webserver.NodeRPCConnection
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.messaging.startFlow
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
@@ -65,7 +69,7 @@ class StandardController(
 
     @PostMapping(value = "/admit", produces = arrayOf("application/json"))
     fun admit(@QueryParam("counterparty") counterpartyName: String,
-              @QueryParam( "ehr") ehr :Int,
+              @QueryParam("ehr") ehr: Int,
               @QueryParam("status") status: String): Response {
         val counterParty = proxy.partiesFromName(counterpartyName, exactMatch = false).singleOrNull()
                 ?: return Response
@@ -80,4 +84,73 @@ class StandardController(
             Response.status(BAD_REQUEST).entity(ex.message).build()
         }
     }
+
+
+    @PostMapping(value = "/request", produces = arrayOf("application/json"))
+    fun transferRequest(@QueryParam("counterparty") counterpartyName: String,
+                        @QueryParam("ehr") ehr: Int,
+                        @QueryParam("transferStatus") transferStatus: String,
+                        @QueryParam("transferDescription") transferDescription: String): Response {
+        val counterParty = proxy.partiesFromName(counterpartyName, exactMatch = false).singleOrNull()
+                ?: return Response
+                        .status(BAD_REQUEST)
+                        .entity("Couldn't lookup node identity for $counterpartyName.")
+                        .build()
+
+        return try {
+            proxy.startFlow(::TransferRequestFlow, counterParty, ehr, transferStatus, transferDescription).returnValue.getOrThrow()
+            Response.status(CREATED).entity("Patient Admitted").build()
+        } catch (ex: Throwable) {
+            Response.status(BAD_REQUEST).entity(ex.message).build()
+        }
+    }
+
+    @PostMapping(value = "/update", produces = arrayOf("application/json"))
+    fun update(@QueryParam("counterparty") counterpartyName: String,
+               @QueryParam("ehr") ehr: Int,
+               @QueryParam("eventType") eventType: String,
+               @QueryParam("eventDescription") eventDescription: String): Response {
+        val counterParty = proxy.partiesFromName(counterpartyName, exactMatch = false).singleOrNull()
+                ?: return Response
+                        .status(BAD_REQUEST)
+                        .entity("Couldn't lookup node identity for $counterpartyName.")
+                        .build()
+
+        return try {
+            proxy.startFlow(::UpdateFlow, counterParty, ehr, eventType, eventDescription).returnValue.getOrThrow()
+            Response.status(CREATED).entity("Patient Admitted").build()
+        } catch (ex: Throwable) {
+            Response.status(BAD_REQUEST).entity(ex.message).build()
+        }
+    }
+
+    @PostMapping(value = "/approve", produces = arrayOf("application/json"))
+    fun transferApproval(@QueryParam("linearIdentifier") linearIdentifier: UniqueIdentifier): Response {
+        return try {
+            proxy.startFlow(::TransferApprovalFlow, linearIdentifier).returnValue.getOrThrow()
+            Response.status(CREATED).entity("Patient Admitted").build()
+        } catch (ex: Throwable) {
+            Response.status(BAD_REQUEST).entity(ex.message).build()
+        }
+    }
+
+    /*
+    @PostMapping(value = "/discharge", produces = arrayOf("application/json"))
+    fun discharge(@QueryParam("counterparty") counterpartyName: String,
+              @QueryParam("ehr") ehr: Int,
+              @QueryParam("hospitalAttachment") hospitalAttachment: Hash): Response {
+        val counterParty = proxy.partiesFromName(counterpartyName, exactMatch = false).singleOrNull()
+                ?: return Response
+                        .status(BAD_REQUEST)
+                        .entity("Couldn't lookup node identity for $counterpartyName.")
+                        .build()
+
+        return try {
+            proxy.startFlow(::AdmissionFlow, counterParty, ehr, status).returnValue.getOrThrow()
+            Response.status(CREATED).entity("Patient Admitted").build()
+        } catch (ex: Throwable) {
+            Response.status(BAD_REQUEST).entity(ex.message).build()
+        }
+    }
+    */
 }
