@@ -1,8 +1,8 @@
 package com.template
 
 import co.paralleluniverse.fibers.Suspendable
-import com.template.contract.AdmissionContract
-import com.template.state.Admission
+import com.patient.contract.AdmissionContract
+import com.patient.state.PatientState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
@@ -19,8 +19,11 @@ import net.corda.core.node.services.vault.QueryCriteria.VaultCustomQueryCriteria
 @InitiatingFlow
 @StartableByRPC
 class AdmissionFlow(val municipality: Party,
+                    val patientId: Int,
                     val ehr: Int,
-                    val status: String) : FlowLogic<SignedTransaction>() {
+                    val status: String,
+                    val event: String,
+                    val care: String) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker: ProgressTracker? = ProgressTracker()
 
@@ -29,7 +32,7 @@ class AdmissionFlow(val municipality: Party,
         // Get the notary
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
         // Create the output state
-        val outputState = Admission(ourIdentity, municipality, ehr, status,
+        val outputState = PatientState(ourIdentity,  municipality, patientId, ehr, status, event,care,
                 UniqueIdentifier(), listOf(ourIdentity, municipality))
 
         // Building the transaction
@@ -46,7 +49,6 @@ class AdmissionFlow(val municipality: Party,
         val otherPartySession = initiateFlow(outputState.municipality)
         val completelySignedTransaction = subFlow(CollectSignaturesFlow(partiallySignedTransaction, listOf(otherPartySession)))
         // Notarize and commit
-        logger.info("PRAVIN RUNNING main flow")
         return subFlow(FinalityFlow(completelySignedTransaction))
 
     }
@@ -60,14 +62,17 @@ class AdmissionResponderFlow(val otherPartySession: FlowSession) : FlowLogic<Uni
             override fun checkTransaction(stx: SignedTransaction) {
                 //verify if EHR already exists or add EHR
                 val ledgerTx: LedgerTransaction = stx.toLedgerTransaction(serviceHub, false)
-                val outputState: Admission = ledgerTx.outputsOfType<Admission>().single()
-                val ccyIndex = builder { MedicalSchemaV1.PersistentMedicalState::ehr.equal(outputState.ehr) }
-                val criteria = VaultCustomQueryCriteria(ccyIndex)
+                val outputState: PatientState = ledgerTx.outputsOfType<PatientState>().single()
+                val ehrIndex = builder { MedicalSchemaV1.PersistentMedicalState::ehr.equal(outputState.ehr) }
+                val patientStatusIndex = builder { MedicalSchemaV1.PersistentMedicalState::admitStatus.equal("ADMITTED") }
+                val ehrCriteria = VaultCustomQueryCriteria(ehrIndex)
+                val admitCriteria = VaultCustomQueryCriteria(patientStatusIndex)
+                val patientCriteria = ehrCriteria.and(admitCriteria)
                 try {
-                    val results = serviceHub.vaultService.queryBy<Admission>(criteria).states.single().state.data
+                    val results = serviceHub.vaultService.queryBy<PatientState>(patientCriteria).states.single().state.data
                     logger.info("Results:" + results)
                     if(results.ehr == outputState.ehr)
-                        throw FlowException("EHR already exists")
+                        throw FlowException("This EHR is admitted currently")
                 }
                 catch (e: NoSuchElementException){
                     logger.info("List is empty")

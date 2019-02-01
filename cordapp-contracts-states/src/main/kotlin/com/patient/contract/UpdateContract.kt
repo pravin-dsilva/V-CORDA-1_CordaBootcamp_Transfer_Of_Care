@@ -1,13 +1,13 @@
-package com.template.contract
+package com.patient.contract
 
-import com.template.state.Admission
-import com.template.state.Update
+
+import com.patient.state.PatientState
 import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 
 class UpdateContract: Contract {
     companion object {
-        val ID = "com.template.contract.UpdateContract"
+        val ID = "com.patient.contract.UpdateContract"
     }
 
     interface Commands: CommandData {
@@ -26,11 +26,11 @@ class UpdateContract: Contract {
         requireThat {
             "Transaction should have zero inputs" using (tx.inputs.isEmpty())
             "Transaction should have one output" using (tx.outputs.size == 1)
-            val outputState = tx.outputStates.get(0) as Update
+            val outputState = tx.outputStates.get(0) as PatientState
             //val outputState2 = tx.outputsOfType<InvoiceState>().get(0)
             "Admission should be signed by hospital" using (command.signers.contains(outputState.hospital.owningKey))
             "The ehr value should be positive" using (outputState.ehr > 0)
-            "The event description should not be blank" using (outputState.eventDescription.isNotBlank())
+            "The event description should not be blank" using (outputState.event.isNotBlank())
         }
     }
 }

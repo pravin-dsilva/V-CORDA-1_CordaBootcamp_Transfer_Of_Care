@@ -1,4 +1,4 @@
-package com.template.state
+package com.patient.state
 
 import com.template.MedicalSchemaV1
 import net.corda.core.contracts.LinearState
@@ -10,18 +10,25 @@ import net.corda.core.schemas.PersistentState
 import net.corda.core.schemas.QueryableState
 
 
-data class Admission(val hospital: Party,
-                     val municipality: Party,
-                     val ehr: Int,
-                     val status: String,
-                     override val linearId: UniqueIdentifier,
-                     override val participants: List<AbstractParty>) : LinearState, QueryableState {
+data class PatientState(val hospital: Party,
+                        val municipality: Party,
+                        val patientId: Int,
+                        val ehr: Int,
+                        val status: String,
+                        val event: String,
+                        val care: String,
+                        override val linearId: UniqueIdentifier,
+                        override val participants: List<AbstractParty>) : LinearState, QueryableState {
 
     override fun generateMappedObject(schema: MappedSchema): PersistentState {
         return when (schema) {
             is MedicalSchemaV1 -> MedicalSchemaV1.PersistentMedicalState(
+                    patientId = this.patientId,
                     ehr = this.ehr,
-                    admitStatus =  this.status
+                    event = this.event,
+                    admitStatus =  this.status,
+                    careStatus = this.care
+
             )
             else -> throw IllegalArgumentException("Unrecognised schema $schema")
         }

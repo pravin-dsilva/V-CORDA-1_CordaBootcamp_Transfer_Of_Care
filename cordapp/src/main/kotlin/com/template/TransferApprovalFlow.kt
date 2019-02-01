@@ -1,19 +1,22 @@
 package com.template
 
 import co.paralleluniverse.fibers.Suspendable
-import com.template.contract.TransferContract
-import com.template.state.Transfer
-import net.corda.core.contracts.UniqueIdentifier
+import com.patient.contract.UpdateContract
+import com.patient.state.PatientState
+import net.corda.core.contracts.StateRef
 import net.corda.core.flows.*
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
+import net.corda.core.node.services.vault.builder
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 
 @InitiatingFlow
 @StartableByRPC
-class TransferApprovalFlow(val linearIdentifier: UniqueIdentifier) : FlowLogic<SignedTransaction>() {
+class TransferApprovalFlow(val patientId: Int,
+                           val approval: String
+) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker: ProgressTracker? = ProgressTracker()
 
@@ -22,43 +25,35 @@ class TransferApprovalFlow(val linearIdentifier: UniqueIdentifier) : FlowLogic<S
         // Get the notary
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
 
-        // Query the state by linear id
-        val vaultQueryCriteria = QueryCriteria.LinearStateQueryCriteria(listOf(ourIdentity), listOf(linearIdentifier))
-        val inputState = serviceHub.vaultService.queryBy<Transfer>(vaultQueryCriteria).states.first()
+        //Verify there is an existing Patient ID to make updates.
+        val patientStatusIndex = builder { MedicalSchemaV1.PersistentMedicalState::patientId.equal(patientId) }
+        val patientIdCriteria = QueryCriteria.VaultCustomQueryCriteria(patientStatusIndex)
+        try {
+            val inputStateData = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.single().state.data
+            logger.info("Results:" + inputStateData)
+            if (inputStateData.patientId != this.patientId)
+                throw FlowException("No Patient exists")
+        } catch (e: NoSuchElementException) {
+            throw FlowException("List is empty. Cannot Update")
+        }
 
-
-        // 2. Create new transfer of care state
-        val outputState = inputState.state.data.copy(transferStatus = "TRANSFER APPROVED")
+        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.single()
+        val outputState : PatientState
+        if (approval.equals("APPROVE")) {
+            outputState = inputState.state.data.copy(care = "APPROVED")
+        } else {
+            outputState = inputState.state.data.copy(care = "REJECT")
+        }
 
         // Building the transaction
-        val transactionBuilder = TransactionBuilder(notary).addOutputState(outputState, TransferContract.ID).addCommand(TransferContract.Commands.Approval(), ourIdentity.owningKey, outputState.hospital.owningKey)
-
-
+        val transactionBuilder = TransactionBuilder(notary).addOutputState(outputState, UpdateContract.ID).addCommand(UpdateContract.Commands.Update(), ourIdentity.owningKey)
         // Verify transaction Builder
         transactionBuilder.verify(serviceHub)
 
         // Sign the transaction
-        val partiallySignedTransaction = serviceHub.signInitialTransaction(transactionBuilder)
-
-        // Send transaction to the hospital node for signing
-        val otherPartySession = initiateFlow(outputState.hospital)
-        val completelySignedTransaction = subFlow(CollectSignaturesFlow(partiallySignedTransaction, listOf(otherPartySession)))
+        val signedTransaction = serviceHub.signInitialTransaction(transactionBuilder)
 
         // Notarize and commit
-        return subFlow(FinalityFlow(completelySignedTransaction))
-
+        return subFlow(FinalityFlow(signedTransaction))
     }
-}
-
-    @InitiatedBy(TransferApprovalFlow::class)
-    class TransferApprovalResponderFlow(val otherpartySession: FlowSession): FlowLogic<Unit>(){
-        @Suspendable
-        override fun call() {
-            val flow = object : SignTransactionFlow(otherpartySession){
-                override fun checkTransaction(stx: SignedTransaction) {
-                    // sanity checks on this transaction
-                }
-            }
-            subFlow(flow)
-        }
 }
