@@ -1,0 +1,267 @@
+{
+	"id": "08becec7-d654-6027-7216-50f724327180",
+	"name": "CordApp",
+	"description": "",
+	"order": [
+		"e275dde0-81e3-1ead-8e08-97022742ca49",
+		"1d3802c2-4e85-5459-7ab2-ab96d6cba792",
+		"d2d80277-2d2d-6fc6-b7ce-05f6fecf4354",
+		"7121f9bb-1954-7362-b7b6-2485431e5fe7",
+		"29d5bc59-4d34-c6d0-19cc-c7d53105723a",
+		"e86a8fc1-7edd-3103-278d-a895f626cec6",
+		"6291e99c-fc29-d16f-f059-ca85acdbed5c"
+	],
+	"folders": [],
+	"folders_order": [],
+	"timestamp": 1549013903984,
+	"owner": 0,
+	"public": false,
+	"requests": [
+		{
+			"id": "1d3802c2-4e85-5459-7ab2-ab96d6cba792",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:10050/admit?counterpartyName=PartyB&ehr=2&status=admit",
+			"queryParams": [
+				{
+					"key": "counterpartyName",
+					"value": "PartyB",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "ehr",
+					"value": "2",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "status",
+					"value": "admit",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "08becec7-d654-6027-7216-50f724327180",
+			"data": null,
+			"dataMode": "params",
+			"name": "start Admission flow",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1549013952461,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "29d5bc59-4d34-c6d0-19cc-c7d53105723a",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:10050/update?counterpartyName=PartyB&ehr=2&eventType=&&eventDescription=",
+			"queryParams": [
+				{
+					"key": "counterpartyName",
+					"value": "PartyB",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "ehr",
+					"value": "2",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "eventType",
+					"value": "",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "eventDescription",
+					"value": "",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "08becec7-d654-6027-7216-50f724327180",
+			"data": null,
+			"dataMode": "params",
+			"name": "Start update records flow",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1549014288560,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "6291e99c-fc29-d16f-f059-ca85acdbed5c",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:10050/flows",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": null,
+			"dataMode": "params",
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1549014431684,
+			"name": "List flows",
+			"description": "",
+			"collectionId": "08becec7-d654-6027-7216-50f724327180",
+			"responses": []
+		},
+		{
+			"id": "7121f9bb-1954-7362-b7b6-2485431e5fe7",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:10050/request?counterpartyName=PartyB&ehr=2&transferStatus=&&transferDescription=",
+			"queryParams": [
+				{
+					"key": "counterpartyName",
+					"value": "PartyB",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "ehr",
+					"value": "2",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "transferStatus",
+					"value": "",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "transferDescription",
+					"value": "",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "08becec7-d654-6027-7216-50f724327180",
+			"data": null,
+			"dataMode": "params",
+			"name": "Start transfer request flow",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1549014195592,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "d2d80277-2d2d-6fc6-b7ce-05f6fecf4354",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:10050/status",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "08becec7-d654-6027-7216-50f724327180",
+			"data": null,
+			"dataMode": "params",
+			"name": "Check Status",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1549014058219,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "e275dde0-81e3-1ead-8e08-97022742ca49",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:10050/ioustates",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": null,
+			"dataMode": "params",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1549014394492,
+			"name": "Check ioustates",
+			"description": "",
+			"collectionId": "08becec7-d654-6027-7216-50f724327180",
+			"responses": []
+		},
+		{
+			"id": "e86a8fc1-7edd-3103-278d-a895f626cec6",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:10050/approve?linearIdentifier=",
+			"queryParams": [
+				{
+					"key": "linearIdentifier",
+					"value": "",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "08becec7-d654-6027-7216-50f724327180",
+			"data": null,
+			"dataMode": "params",
+			"name": "Start transfer approval flow",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1549014339397,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		}
+	]
+}
