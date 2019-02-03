@@ -1,7 +1,7 @@
 //package com.template
 //
 //import co.paralleluniverse.fibers.Suspendable
-//import com.template.contract.AdmissionContract
+//import com.template.contract.MedicalContract
 //import com.template.state.Admission
 //import net.corda.core.contracts.UniqueIdentifier
 //import net.corda.core.flows.*
@@ -34,8 +34,8 @@
 //
 //        // Building the transaction
 //        val transactionBuilder = TransactionBuilder(notary)
-//                .addOutputState(outputState, AdmissionContract.ID)
-//                .addCommand(AdmissionContract.Commands.Admit(), ourIdentity.owningKey, outputState.municipality.owningKey)
+//                .addOutputState(outputState, MedicalContract.ID)
+//                .addCommand(MedicalContract.Commands.Admit(), ourIdentity.owningKey, outputState.municipality.owningKey)
 //                .addAttachment(hospitalAttachment)
 //
 //

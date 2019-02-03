@@ -1,6 +1,5 @@
 package com.template
 
-import com.patient.contract.UpdateContract
 import net.corda.core.contracts.Contract
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name

@@ -12,7 +12,7 @@ class AdmissionFlowTests {
     lateinit var b: StartedMockNode
     @Before
     fun setup() {
-        network = MockNetwork(listOf("com.template.contract.AdmissionContract", "com.template.schema"))
+        network = MockNetwork(listOf("com.template.contract.MedicalContract", "com.template.schema"))
         a = network.createPartyNode()
         b = network.createPartyNode()
         // For real nodes this happens automatically, but we have to manually register the flow for tests.

@@ -1,6 +1,6 @@
 package com.template
 
-import com.patient.contract.AdmissionContract
+import com.patient.contract.MedicalContract
 import net.corda.core.contracts.Contract
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
@@ -20,7 +20,7 @@ class AdmissionContractTests {
     private val admissionState = Admission(partyA.party, partyB.party, 1, "", linearId, participants)
     @Test
     fun tokenContractImplementsContract() {
-        assert((AdmissionContract() is Contract))
+        assert((MedicalContract() is Contract))
     }
 
 
@@ -28,8 +28,8 @@ class AdmissionContractTests {
     fun `transaction must have 0 inputs`() {
         ledgerServices.ledger {
             transaction {
-                output(AdmissionContract.ID, admissionState)
-                command(listOf(partyA.publicKey, partyB.publicKey), AdmissionContract.Commands.Admit())
+                output(MedicalContract.ID, admissionState)
+                command(listOf(partyA.publicKey, partyB.publicKey), MedicalContract.Commands.Admit())
                 verifies()
             }
         }
@@ -39,14 +39,14 @@ class AdmissionContractTests {
     fun `transaction must have 1 output`() {
         ledgerServices.ledger {
             transaction {
-                output(AdmissionContract.ID, admissionState)
-                output(AdmissionContract.ID, admissionState)
-                command(listOf(partyA.publicKey, partyB.publicKey), AdmissionContract.Commands.Admit())
+                output(MedicalContract.ID, admissionState)
+                output(MedicalContract.ID, admissionState)
+                command(listOf(partyA.publicKey, partyB.publicKey), MedicalContract.Commands.Admit())
                 fails()
             }
             transaction {
-                output(AdmissionContract.ID, admissionState)
-                command(listOf(partyA.publicKey, partyB.publicKey), AdmissionContract.Commands.Admit())
+                output(MedicalContract.ID, admissionState)
+                command(listOf(partyA.publicKey, partyB.publicKey), MedicalContract.Commands.Admit())
                 verifies()
             }
         }
@@ -56,21 +56,21 @@ class AdmissionContractTests {
         ledgerServices.ledger {
             transaction {
                 // Municipality is not a required signer, will fail.
-                output(AdmissionContract.ID, admissionState)
-                command(partyA.publicKey, AdmissionContract.Commands.Admit())
+                output(MedicalContract.ID, admissionState)
+                command(partyA.publicKey, MedicalContract.Commands.Admit())
                 fails()
             }
 
             transaction {
                 // Municipality is a required signer, will verify.
-                output(AdmissionContract.ID, admissionState)
-                command(listOf(partyA.publicKey, partyB.publicKey), AdmissionContract.Commands.Admit())
+                output(MedicalContract.ID, admissionState)
+                command(listOf(partyA.publicKey, partyB.publicKey), MedicalContract.Commands.Admit())
                 verifies()
             }
             transaction {
                 // Municipality is also a required signer, will verify.
-                output(AdmissionContract.ID, admissionState)
-                command(partyB.publicKey, AdmissionContract.Commands.Admit())
+                output(MedicalContract.ID, admissionState)
+                command(partyB.publicKey, MedicalContract.Commands.Admit())
                 fails()
             }
         }

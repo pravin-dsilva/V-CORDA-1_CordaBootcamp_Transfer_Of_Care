@@ -1,7 +1,7 @@
 package com.template
 
 import co.paralleluniverse.fibers.Suspendable
-import com.patient.contract.UpdateContract
+import com.patient.contract.MedicalContract
 import com.patient.state.PatientState
 import net.corda.core.flows.*
 import net.corda.core.node.services.queryBy
@@ -27,20 +27,24 @@ class TransferRequestFlow(val patientId: Int
 
         val patientStatusIndex = builder { MedicalSchemaV1.PersistentMedicalState::patientId.equal(patientId) }
         val patientIdCriteria = QueryCriteria.VaultCustomQueryCriteria(patientStatusIndex)
+        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.first()
         try {
-            val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.single().state.data
+            val inputStateData = inputState.state.data
             logger.info("Results:" + inputState)
-            if (inputState.patientId != this.patientId)
+            if (inputStateData.patientId != this.patientId)
                 throw FlowException("No Patient exists")
         } catch (e: NoSuchElementException) {
             throw FlowException("List is empty. Cannot Update")
         }
 
-        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.single()
+
         val outputState = inputState.state.data.copy(care = "Care Requested")
 
         // Building the transaction
-        val transactionBuilder = TransactionBuilder(notary).addOutputState(outputState, UpdateContract.ID).addCommand(UpdateContract.Commands.Update(), ourIdentity.owningKey)
+        val transactionBuilder = TransactionBuilder(notary)
+                .addInputState(inputState)
+                .addOutputState(outputState, MedicalContract.ID)
+                .addCommand(MedicalContract.Commands.RequestCare(), ourIdentity.owningKey)
         // Verify transaction Builder
         transactionBuilder.verify(serviceHub)
 

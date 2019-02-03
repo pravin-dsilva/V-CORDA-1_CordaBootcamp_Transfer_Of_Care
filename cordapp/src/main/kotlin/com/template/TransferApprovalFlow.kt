@@ -1,9 +1,8 @@
 package com.template
 
 import co.paralleluniverse.fibers.Suspendable
-import com.patient.contract.UpdateContract
+import com.patient.contract.MedicalContract
 import com.patient.state.PatientState
-import net.corda.core.contracts.StateRef
 import net.corda.core.flows.*
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
@@ -28,16 +27,15 @@ class TransferApprovalFlow(val patientId: Int,
         //Verify there is an existing Patient ID to make updates.
         val patientStatusIndex = builder { MedicalSchemaV1.PersistentMedicalState::patientId.equal(patientId) }
         val patientIdCriteria = QueryCriteria.VaultCustomQueryCriteria(patientStatusIndex)
+        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.first()
         try {
-            val inputStateData = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.single().state.data
+            val inputStateData = inputState.state.data
             logger.info("Results:" + inputStateData)
             if (inputStateData.patientId != this.patientId)
                 throw FlowException("No Patient exists")
         } catch (e: NoSuchElementException) {
             throw FlowException("List is empty. Cannot Update")
         }
-
-        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.single()
         val outputState : PatientState
         if (approval.equals("APPROVE")) {
             outputState = inputState.state.data.copy(care = "APPROVED")
@@ -46,7 +44,10 @@ class TransferApprovalFlow(val patientId: Int,
         }
 
         // Building the transaction
-        val transactionBuilder = TransactionBuilder(notary).addOutputState(outputState, UpdateContract.ID).addCommand(UpdateContract.Commands.Update(), ourIdentity.owningKey)
+        val transactionBuilder = TransactionBuilder(notary)
+                .addInputState(inputState)
+                .addOutputState(outputState, MedicalContract.ID)
+                .addCommand(MedicalContract.Commands.ApproveCare(), ourIdentity.owningKey)
         // Verify transaction Builder
         transactionBuilder.verify(serviceHub)
 

@@ -1,7 +1,7 @@
 package com.template
 
 import co.paralleluniverse.fibers.Suspendable
-import com.patient.contract.AdmissionContract
+import com.patient.contract.MedicalContract
 import com.patient.state.PatientState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
@@ -36,7 +36,7 @@ class AdmissionFlow(val municipality: Party,
                 UniqueIdentifier(), listOf(ourIdentity, municipality))
 
         // Building the transaction
-        val transactionBuilder = TransactionBuilder(notary).addOutputState(outputState, AdmissionContract.ID).addCommand(AdmissionContract.Commands.Admit(), ourIdentity.owningKey, outputState.municipality.owningKey)
+        val transactionBuilder = TransactionBuilder(notary).addOutputState(outputState, MedicalContract.ID).addCommand(MedicalContract.Commands.Admit(), ourIdentity.owningKey, outputState.municipality.owningKey)
 
 
         // Verify transaction Builder
