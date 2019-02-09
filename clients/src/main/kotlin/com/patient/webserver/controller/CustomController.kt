@@ -1,6 +1,6 @@
-package com.template.webserver.controllers
+package com.patient.webserver.controller
 
-import com.template.webserver.NodeRPCConnection
+import com.patient.webserver.NodeRPCConnection
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

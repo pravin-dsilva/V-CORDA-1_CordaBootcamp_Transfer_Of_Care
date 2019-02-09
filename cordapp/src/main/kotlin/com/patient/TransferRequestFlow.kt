@@ -1,8 +1,9 @@
-package com.template
+package com.patient
 
 import co.paralleluniverse.fibers.Suspendable
 import com.patient.contract.MedicalContract
 import com.patient.state.PatientState
+import com.template.MedicalSchemaV1
 import net.corda.core.flows.*
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
@@ -27,7 +28,11 @@ class TransferRequestFlow(val patientId: Int
 
         val patientStatusIndex = builder { MedicalSchemaV1.PersistentMedicalState::patientId.equal(patientId) }
         val patientIdCriteria = QueryCriteria.VaultCustomQueryCriteria(patientStatusIndex)
-        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.first()
+
+        val patientAdmitIndex = builder { MedicalSchemaV1.PersistentMedicalState::admitStatus.equal("DISCHARGED") }
+        val patientAdmitCriteria = QueryCriteria.VaultCustomQueryCriteria(patientAdmitIndex)
+        val patientCriteria = patientIdCriteria.and(patientAdmitCriteria)
+        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientCriteria).states.first()
         try {
             val inputStateData = inputState.state.data
             logger.info("Results:" + inputState)
@@ -36,7 +41,6 @@ class TransferRequestFlow(val patientId: Int
         } catch (e: NoSuchElementException) {
             throw FlowException("List is empty. Cannot Update")
         }
-
 
         val outputState = inputState.state.data.copy(care = "Care Requested")
 

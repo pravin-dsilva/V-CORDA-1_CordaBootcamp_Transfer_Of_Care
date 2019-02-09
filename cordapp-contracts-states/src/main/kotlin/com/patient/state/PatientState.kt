@@ -28,7 +28,6 @@ data class PatientState(val hospital: Party,
                     event = this.event,
                     admitStatus =  this.status,
                     careStatus = this.care
-
             )
             else -> throw IllegalArgumentException("Unrecognised schema $schema")
         }

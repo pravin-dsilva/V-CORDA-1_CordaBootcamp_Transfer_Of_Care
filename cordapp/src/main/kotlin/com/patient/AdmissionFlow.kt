@@ -1,8 +1,9 @@
-package com.template
+package com.patient
 
 import co.paralleluniverse.fibers.Suspendable
 import com.patient.contract.MedicalContract
 import com.patient.state.PatientState
+import com.template.MedicalSchemaV1
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
@@ -36,7 +37,9 @@ class AdmissionFlow(val municipality: Party,
                 UniqueIdentifier(), listOf(ourIdentity, municipality))
 
         // Building the transaction
-        val transactionBuilder = TransactionBuilder(notary).addOutputState(outputState, MedicalContract.ID).addCommand(MedicalContract.Commands.Admit(), ourIdentity.owningKey, outputState.municipality.owningKey)
+        val transactionBuilder = TransactionBuilder(notary)
+                .addOutputState(outputState, MedicalContract.ID)
+                .addCommand(MedicalContract.Commands.Admit(), ourIdentity.owningKey, outputState.municipality.owningKey)
 
 
         // Verify transaction Builder
@@ -77,8 +80,18 @@ class AdmissionResponderFlow(val otherPartySession: FlowSession) : FlowLogic<Uni
                 catch (e: NoSuchElementException){
                     logger.info("List is empty")
                 }
+                val patientIdIndex = builder { MedicalSchemaV1.PersistentMedicalState::ehr.equal(outputState.patientId) }
+                val patientIdCriteria = VaultCustomQueryCriteria(patientIdIndex)
+                try {
+                    val results = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.single().state.data
+                    logger.info("Results:" + results)
+                    if(results.patientId == outputState.patientId)
+                        throw FlowException("This patient ID is already used")
+                }
+                catch (e: NoSuchElementException){
+                    logger.info("List is empty")
+                }
             }
-
         })
 
     }

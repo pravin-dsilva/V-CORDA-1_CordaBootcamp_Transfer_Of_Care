@@ -1,8 +1,9 @@
-package com.template
+package com.patient
 
 import co.paralleluniverse.fibers.Suspendable
 import com.patient.contract.MedicalContract
 import com.patient.state.PatientState
+import com.template.MedicalSchemaV1
 import net.corda.core.flows.*
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
@@ -13,9 +14,9 @@ import net.corda.core.utilities.ProgressTracker
 
 @InitiatingFlow
 @StartableByRPC
-class UpdateFlow(val patientId: Int,
-                 val event: String
-                 ) : FlowLogic<SignedTransaction>() {
+class TransferApprovalFlow(val patientId: Int,
+                           val approval: String
+) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker: ProgressTracker? = ProgressTracker()
 
@@ -25,26 +26,33 @@ class UpdateFlow(val patientId: Int,
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
 
         //Verify there is an existing Patient ID to make updates.
-
         val patientStatusIndex = builder { MedicalSchemaV1.PersistentMedicalState::patientId.equal(patientId) }
         val patientIdCriteria = QueryCriteria.VaultCustomQueryCriteria(patientStatusIndex)
-        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientIdCriteria).states.first()
+        val careRequestIndex = builder { MedicalSchemaV1.PersistentMedicalState::careStatus.equal("Care Requested") }
+        val careRequestCriteria = QueryCriteria.VaultCustomQueryCriteria(careRequestIndex)
+        val patientCriteria = patientIdCriteria.and(careRequestCriteria)
+        val inputState = serviceHub.vaultService.queryBy<PatientState>(patientCriteria).states.first()
         try {
-
-            logger.info("Results:" + inputState)
-            if (inputState.state.data.patientId != this.patientId)
+            val inputStateData = inputState.state.data
+            logger.info("Results:" + inputStateData)
+            if (inputStateData.patientId != this.patientId)
                 throw FlowException("No Patient exists")
         } catch (e: NoSuchElementException) {
             throw FlowException("List is empty. Cannot Update")
         }
-        val outputState = inputState.state.data.copy(event = event)
+        val outputState: PatientState
+        if (approval.equals("APPROVE")) {
+            //outputState = listOf(inputState.state.data.copy(care = "APPROVED")
+            outputState = inputState.state.data.copy(participants = listOf(ourIdentity), care = "APPROVED")
+        } else {
+            outputState = inputState.state.data.copy(care = "REJECTED")
+        }
 
         // Building the transaction
         val transactionBuilder = TransactionBuilder(notary)
                 .addInputState(inputState)
                 .addOutputState(outputState, MedicalContract.ID)
-                .addCommand(MedicalContract.Commands.Update(), ourIdentity.owningKey)
-
+                .addCommand(MedicalContract.Commands.ApproveCare(), ourIdentity.owningKey)
         // Verify transaction Builder
         transactionBuilder.verify(serviceHub)
 
