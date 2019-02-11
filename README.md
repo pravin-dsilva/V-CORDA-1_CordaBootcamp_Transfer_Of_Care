@@ -19,23 +19,28 @@ Once the nodes are up, run gradlew process from root folder of project to start 
 ./gradlew runHospitalServer
 ./gradlew runMunicipalServer
 API endpoints are available for nodes at:
+
 •	Hospital http://localhost:10050
 
 •	Municipal http://localhost:10055
 
 Admit a Patient
 The API endpoint is: http://localhost:10050/admit
+
 `http://localhost:10050/admit?counterpartyName=Municipal&patientId=1&ehr=1&status=ADMITTED`
 
 Update Medical records:
 The API endpoint to update is: http://localhost:10050/update
+
 `http://localhost:10050/update?patientId=1&event=has diabetes`
 
 Discharge a patient:
 The API endpoint for discharge is: http://localhost:10050/discharge
+
 `http://localhost:10050/discharge?patientId=1&filePath=C:/Users/Administrator/Downloads/ehr1-medicalrecord.jar`
 
 Request for transfer of care:
 The API endpoint is: http://localhost:10050/request
-`http://localhost:10050/request?patientId=1``
+
+`http://localhost:10050/request?patientId=1`
 
